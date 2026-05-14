@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的电竞比赛中心</title>
+    <style>
+        body { font-family: sans-serif; max-width: 700px; margin: 2rem auto; padding: 0 1rem; }
+        .match { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+        .game { color: #e74c3c; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🔥 即将开始的比赛</h1>
+    <div id="matches">加载中...</div>
+
+    <script>
+        // 👇 把你的 PandaScore API Key 替换到这里
+        const API_KEY = P94fXthzij2xuX-U3fVAZxy24LzYY_3z38tr3Ac4VnJX2gPMnwc;
+        
+        const API_URL = `https://api.pandascore.co/v2/matches/upcoming?per_page=10`;
+
+        async function loadMatches() {
+            const container = document.getElementById('matches');
+            try {
+                const response = await fetch(API_URL, {
+                    headers: {
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                if (!response.ok) throw new Error(`请求失败，状态码: ${response.status}`);
+                const matches = await response.json();
+                
+                if (matches.length === 0) {
+                    container.innerHTML = '<p>暂时没有即将开始的比赛。</p>';
+                    return;
+                }
+
+                container.innerHTML = matches.map(m => {
+                    const team1 = m.opponents[0]?.opponent?.name || 'TBD';
+                    const team2 = m.opponents[1]?.opponent?.name || 'TBD';
+                    const game = m.videogame?.name || '未知游戏';
+                    const tournament = m.league?.name || m.serie?.name || '未知赛事';
+                    const startTime = m.begin_at ? new Date(m.begin_at).toLocaleString() : '时间待定';
+                    return `
+                        <div class="match">
+                            <span class="game">🎮 ${game}</span>
+                            <p><strong>${team1} vs ${team2}</strong></p>
+                            <p>🏆 ${tournament}</p>
+                            <p>⏰ ${startTime}</p>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('加载比赛数据出错:', error);
+                container.innerHTML = '暂时无法加载比赛数据，请稍后再试。';
+            }
+        }
+        loadMatches();
+    </script>
+</body>
+</html>
